@@ -13,6 +13,8 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 
 final HttpClient _sharedHttpClient = HttpClient()..autoUncompress = false;
 
@@ -321,11 +323,11 @@ class _GifState extends State<Gif> with SingleTickerProviderStateMixin {
 
     if (provider is NetworkImage) {
       final Uri resolved = Uri.base.resolve(provider.url);
-      final HttpClientRequest request = await _httpClient.getUrl(resolved);
+      final request = await http.Client().get(resolved);
       provider.headers?.forEach(
-          (String name, String value) => request.headers.add(name, value));
-      final HttpClientResponse response = await request.close();
-      bytes = await consolidateHttpClientResponseBytes(response);
+          (String name, String value) => request.headers.addAll({name:value}));
+      final Response response = request;
+      bytes = response.bodyBytes;
     } else if (provider is AssetImage) {
       AssetBundleImageKey key =
           await provider.obtainKey(const ImageConfiguration());
