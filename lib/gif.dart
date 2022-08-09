@@ -350,6 +350,10 @@ class _GifState extends State<Gif> with SingleTickerProviderStateMixin {
       duration += frameInfo.duration;
     }
 
+    if(duration == Duration.zero){
+      duration = Duration(milliseconds: 1);
+    }
+
     return GifInfo(frames: infos, duration: duration);
   }
 }
