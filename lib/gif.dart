@@ -7,7 +7,6 @@
 
 library gif;
 
-import 'dart:ffi';
 import 'dart:typed_data';
 import 'dart:ui';
 
@@ -305,7 +304,7 @@ class _GifState extends State<Gif> with SingleTickerProviderStateMixin {
 
   /// Fetches the single gif frames and saves them into the [GifCache] of [Gif]
   static Future<GifInfo> _fetchFrames(ImageProvider provider) async {
-    late final Uint8List bytes;
+    Uint8List bytes =  Uint8List.fromList([]);
 
     if (provider is NetworkImage) {
       try {
@@ -316,7 +315,11 @@ class _GifState extends State<Gif> with SingleTickerProviderStateMixin {
         final Response response = request;
         bytes = response.bodyBytes;
       } catch (e) {
-        bytes = Uint8List(0);
+      /*  AssetImage assetProvider = AssetImage('assets/no_image_icon.jpg');
+        AssetBundleImageKey key =
+            (await assetProvider.obtainKey(const ImageConfiguration()));
+        bytes = (await key.bundle.load(key.name)).buffer.asUint8List();*/
+        print(e);
       }
     } else if (provider is AssetImage) {
       AssetBundleImageKey key =
@@ -330,20 +333,26 @@ class _GifState extends State<Gif> with SingleTickerProviderStateMixin {
 
     // Removing ! gives compile time error on Flutter 2.5.3
     // ignore: unnecessary_non_null_assertion
-    Codec codec = await PaintingBinding.instance!.instantiateImageCodec(bytes);
     List<ImageInfo> infos = [];
     Duration duration = Duration();
 
-    for (int i = 0; i < codec.frameCount; i++) {
-      FrameInfo frameInfo = await codec.getNextFrame();
-      infos.add(ImageInfo(image: frameInfo.image));
-      duration += frameInfo.duration;
-    }
-
-    if (duration == Duration.zero) {
+    if (bytes.isEmpty) {
       duration = Duration(milliseconds: 1);
-    }
+      return GifInfo(frames: infos, duration: duration);
+    } else {
+      Codec codec = await PaintingBinding.instance.instantiateImageCodec(bytes);
 
-    return GifInfo(frames: infos, duration: duration);
+      for (int i = 0; i < codec.frameCount; i++) {
+        FrameInfo frameInfo = await codec.getNextFrame();
+        infos.add(ImageInfo(image: frameInfo.image));
+        duration += frameInfo.duration;
+      }
+
+      if (duration == Duration.zero) {
+        duration = Duration(milliseconds: 1);
+      }
+
+      return GifInfo(frames: infos, duration: duration);
+    }
   }
 }

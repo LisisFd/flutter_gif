@@ -115,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   placeholder: (context) =>
                       const Center(child: CircularProgressIndicator()),
                   image: const NetworkImage(
-                      'https://gapopa.net/files/47/17/35/83/bb/de/a3/f1/51/2d/d6/2d/6a/8f/31/ac/orig.gif'),
+                      'https://gapopa.net/files/47/17/35/83/bb/de/a3/f1/51/2d/d6/2d/6a/8f/31/ac/oig.gif'),
                 ),
               ],
             ),

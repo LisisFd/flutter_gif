@@ -14,4 +14,6 @@ dependencies:
 dev_dependencies:
 
 flutter:
+  assets:
+    - assets/no_image_icon.jpg
 
