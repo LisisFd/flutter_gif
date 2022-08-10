@@ -7,27 +7,13 @@
 
 library gif;
 
-import 'dart:io';
+import 'dart:ffi';
 import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
-
-final HttpClient _sharedHttpClient = HttpClient()..autoUncompress = false;
-
-HttpClient get _httpClient {
-  HttpClient client = _sharedHttpClient;
-  assert(() {
-    if (debugNetworkImageHttpClientProvider != null) {
-      client = debugNetworkImageHttpClientProvider!();
-    }
-    return true;
-  }());
-  return client;
-}
 
 /// How to auto start the gif.
 enum Autostart {
@@ -322,12 +308,16 @@ class _GifState extends State<Gif> with SingleTickerProviderStateMixin {
     late final Uint8List bytes;
 
     if (provider is NetworkImage) {
-      final Uri resolved = Uri.base.resolve(provider.url);
-      final request = await http.Client().get(resolved);
-      provider.headers?.forEach(
-          (String name, String value) => request.headers.addAll({name:value}));
-      final Response response = request;
-      bytes = response.bodyBytes;
+      try {
+        final Uri resolved = Uri.base.resolve(provider.url);
+        final request = await http.Client().get(resolved);
+        provider.headers?.forEach((String name, String value) =>
+            request.headers.addAll({name: value}));
+        final Response response = request;
+        bytes = response.bodyBytes;
+      } catch (e) {
+        bytes = Uint8List(0);
+      }
     } else if (provider is AssetImage) {
       AssetBundleImageKey key =
           await provider.obtainKey(const ImageConfiguration());
@@ -350,7 +340,7 @@ class _GifState extends State<Gif> with SingleTickerProviderStateMixin {
       duration += frameInfo.duration;
     }
 
-    if(duration == Duration.zero){
+    if (duration == Duration.zero) {
       duration = Duration(milliseconds: 1);
     }
 
